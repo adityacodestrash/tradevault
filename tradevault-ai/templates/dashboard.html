@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link active">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link">
+                <i class="fas fa-book"></i>
+                <span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link">
+                <i class="fas fa-chess-knight"></i>
+                <span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link">
+                <i class="fas fa-flask"></i>
+                <span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Learn</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('profile') }}" class="sidebar-link">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="{{ url_for('goals') }}" class="sidebar-link">
+                <i class="fas fa-bullseye"></i>
+                <span>Goals</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Welcome back, {{ current_user.username }}</p>
+            </div>
+            <a href="{{ url_for('new_trade') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Trade
+            </a>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-blue">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ stats.total_trades }}</div>
+                    <div class="stat-label">Total Trades</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-green">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ stats.win_rate }}%</div>
+                    <div class="stat-label">Win Rate</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon {% if stats.net_pnl >= 0 %}stat-icon-green{% else %}stat-icon-red{% endif %}">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value {% if stats.net_pnl >= 0 %}text-green{% else %}text-red{% endif %}">
+                        {% if stats.net_pnl >= 0 %}+{% endif %}{{ stats.net_pnl }}
+                    </div>
+                    <div class="stat-label">Net P&L</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-purple">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ stats.open_positions }}</div>
+                    <div class="stat-label">Open Positions</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-orange">
+                    <i class="fas fa-chess-knight"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ stats.total_strategies }}</div>
+                    <div class="stat-label">Strategies</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-cyan">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ stats.total_backtests }}</div>
+                    <div class="stat-label">Backtests</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts & Tables Row -->
+        <div class="dashboard-row">
+            <!-- Equity Curve Chart -->
+            <div class="dashboard-card chart-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-area"></i> Equity Curve
+                    </h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="equityChart"></canvas>
+                    {% if not equity_data %}
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-line"></i>
+                        <p>Start journaling trades to see your equity curve</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Learning Progress -->
+            <div class="dashboard-card progress-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-graduation-cap"></i> Learning Progress
+                    </h3>
+                    <a href="{{ url_for('learn') }}" class="card-link">Continue <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="progress-content">
+                    <div class="progress-ring-container">
+                        <svg class="progress-ring" viewBox="0 0 120 120">
+                            <circle class="progress-ring-bg" cx="60" cy="60" r="54"></circle>
+                            <circle class="progress-ring-fill" cx="60" cy="60" r="54" 
+                                    stroke-dasharray="339.292" 
+                                    stroke-dashoffset="{{ 339.292 - (339.292 * stats.learning_percent / 100) }}"></circle>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="progress-percent">{{ stats.learning_percent }}%</span>
+                            <span class="progress-label">Complete</span>
+                        </div>
+                    </div>
+                    <div class="progress-details">
+                        <div class="progress-stat">
+                            <span class="progress-stat-value">{{ stats.completed_lessons }}</span>
+                            <span class="progress-stat-label">Lessons Done</span>
+                        </div>
+                        <div class="progress-stat">
+                            <span class="progress-stat-value">{{ stats.total_lessons }}</span>
+                            <span class="progress-stat-label">Total Lessons</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Trades -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-history"></i> Recent Trades
+                </h3>
+                <a href="{{ url_for('journal') }}" class="card-link">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            {% if recent_trades %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Pair</th>
+                            <th>Direction</th>
+                            <th>Entry</th>
+                            <th>Exit</th>
+                            <th>P&L</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trade in recent_trades %}
+                        <tr>
+                            <td>{{ trade.trade_date }}</td>
+                            <td class="font-mono">{{ trade.pair }}</td>
+                            <td>
+                                <span class="badge {% if trade.direction == 'LONG' %}badge-green{% else %}badge-red{% endif %}">
+                                    {{ trade.direction }}
+                                </span>
+                            </td>
+                            <td class="font-mono">{{ trade.entry_price }}</td>
+                            <td class="font-mono">{{ trade.exit_price or '—' }}</td>
+                            <td class="font-mono {% if trade.pnl and trade.pnl > 0 %}text-green{% elif trade.pnl and trade.pnl < 0 %}text-red{% endif %}">
+                                {% if trade.pnl %}
+                                    {% if trade.pnl > 0 %}+{% endif %}{{ "%.2f"|format(trade.pnl) }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if trade.status == 'OPEN' %}badge-blue{% else %}badge-gray{% endif %}">
+                                    {{ trade.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-book-open"></i>
+                <p>No trades yet. <a href="{{ url_for('new_trade') }}">Log your first trade</a></p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Weekly Goals -->
+        {% if goals %}
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-bullseye"></i> Weekly Goals
+                </h3>
+                <a href="{{ url_for('goals') }}" class="card-link">Manage <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="goals-list">
+                {% for goal in goals %}
+                <div class="goal-item">
+                    <div class="goal-info">
+                        <span class="goal-desc">{{ goal.description }}</span>
+                        <span class="goal-progress">{{ goal.current }} / {{ goal.target }}</span>
+                    </div>
+                    <div class="goal-bar">
+                        <div class="goal-fill" style="width: {{ (goal.current / goal.target * 100)|round }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Simple equity curve chart using Canvas API
+    const equityCanvas = document.getElementById('equityChart');
+    if (equityCanvas) {
+        const equityCtx = equityCanvas.getContext('2d');
+        const equityData = {{ equity_data|tojson|safe }};
+
+        function drawEquityChart() {
+            const w = equityCanvas.parentElement.clientWidth;
+            const h = 250;
+            equityCanvas.width = w;
+            equityCanvas.height = h;
+
+            equityCtx.clearRect(0, 0, w, h);
+
+            if (equityData.length === 0) return;
+
+            // Calculate cumulative P&L
+            let cumulative = 0;
+            const points = equityData.map(d => {
+                cumulative += (d.pnl || 0);
+                return cumulative;
+            });
+
+            const minVal = Math.min(...points);
+            const maxVal = Math.max(...points);
+            const range = maxVal - minVal || 1;
+
+            // Draw grid
+            equityCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+            equityCtx.lineWidth = 1;
+            for (let i = 1; i < 5; i++) {
+                const y = h - (h * i / 5);
+                equityCtx.beginPath();
+                equityCtx.moveTo(0, y);
+                equityCtx.lineTo(w, y);
+                equityCtx.stroke();
+            }
+
+            // Draw line
+            equityCtx.beginPath();
+            points.forEach((val, i) => {
+                const x = (i / (points.length - 1)) * w;
+                const y = h - ((val - minVal) / range) * (h - 40) - 20;
+                if (i === 0) equityCtx.moveTo(x, y);
+                else equityCtx.lineTo(x, y);
+            });
+
+            equityCtx.strokeStyle = '#00d4aa';
+            equityCtx.lineWidth = 2;
+            equityCtx.stroke();
+
+            // Fill area
+            equityCtx.lineTo(w, h);
+            equityCtx.lineTo(0, h);
+            equityCtx.closePath();
+            equityCtx.fillStyle = 'rgba(0, 212, 170, 0.1)';
+            equityCtx.fill();
+
+            // Draw points
+            points.forEach((val, i) => {
+                if (i % Math.ceil(points.length / 10) === 0) {
+                    const x = (i / (points.length - 1)) * w;
+                    const y = h - ((val - minVal) / range) * (h - 40) - 20;
+                    equityCtx.beginPath();
+                    equityCtx.arc(x, y, 3, 0, Math.PI * 2);
+                    equityCtx.fillStyle = '#00d4aa';
+                    equityCtx.fill();
+                }
+            });
+        }
+
+        drawEquityChart();
+        window.addEventListener('resize', drawEquityChart);
+    }
+</script>
+{% endblock %}

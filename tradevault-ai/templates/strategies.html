@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Strategy Vault — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link">
+                <i class="fas fa-book"></i><span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link active">
+                <i class="fas fa-chess-knight"></i><span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link">
+                <i class="fas fa-flask"></i><span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link">
+                <i class="fas fa-graduation-cap"></i><span>Learn</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">Strategy Vault</h1>
+                <p class="page-subtitle">Store and manage your trading strategies</p>
+            </div>
+            <div class="page-actions">
+                <a href="{{ url_for('strategies', archived='1') }}" class="btn btn-ghost btn-sm {% if archived == '1' %}active{% endif %}">
+                    <i class="fas fa-archive"></i> Archived
+                </a>
+                <a href="{{ url_for('new_strategy') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> New Strategy
+                </a>
+            </div>
+        </header>
+
+        {% if strategies %}
+        <div class="strategies-grid">
+            {% for strategy in strategies %}
+            <div class="strategy-card">
+                <div class="strategy-header">
+                    <div class="strategy-meta">
+                        <span class="badge badge-blue">{{ strategy.market_type }}</span>
+                        <span class="badge badge-gray">{{ strategy.timeframe }}</span>
+                    </div>
+                    <div class="strategy-actions">
+                        <a href="{{ url_for('edit_strategy', strategy_id=strategy.id) }}" class="btn-icon" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('archive_strategy', strategy_id=strategy.id) }}" class="inline-form">
+                            <button type="submit" class="btn-icon" title="{% if strategy.is_archived %}Restore{% else %}Archive{% endif %}">
+                                <i class="fas {% if strategy.is_archived %}fa-undo{% else %}fa-archive{% endif %}"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <h3 class="strategy-name">{{ strategy.name }}</h3>
+
+                <div class="strategy-rules">
+                    <div class="rule-block">
+                        <h4><i class="fas fa-sign-in-alt"></i> Entry Rules</h4>
+                        <p>{{ strategy.entry_rules or 'No entry rules defined.' }}</p>
+                    </div>
+                    <div class="rule-block">
+                        <h4><i class="fas fa-sign-out-alt"></i> Exit Rules</h4>
+                        <p>{{ strategy.exit_rules or 'No exit rules defined.' }}</p>
+                    </div>
+                    <div class="rule-block">
+                        <h4><i class="fas fa-shield-alt"></i> Risk Rules</h4>
+                        <p>{{ strategy.risk_rules or 'No risk rules defined.' }}</p>
+                    </div>
+                </div>
+
+                {% if strategy.notes %}
+                <div class="strategy-notes">
+                    <p><i class="fas fa-sticky-note"></i> {{ strategy.notes }}</p>
+                </div>
+                {% endif %}
+
+                <div class="strategy-footer">
+                    <span class="strategy-date">
+                        <i class="fas fa-calendar"></i> {{ strategy.created_at[:10] }}
+                    </span>
+                    {% if strategy.win_rate %}
+                    <span class="strategy-stat">
+                        <i class="fas fa-percentage"></i> {{ strategy.win_rate }}% WR
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="dashboard-card empty-state-large">
+            <i class="fas fa-chess-knight"></i>
+            <h3>No strategies yet</h3>
+            <p>Document your trading edge. Define entry, exit, and risk rules.</p>
+            <a href="{{ url_for('new_strategy') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create First Strategy
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

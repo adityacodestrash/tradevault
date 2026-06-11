@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link">
+                <i class="fas fa-book"></i><span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link">
+                <i class="fas fa-chess-knight"></i><span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link">
+                <i class="fas fa-flask"></i><span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link">
+                <i class="fas fa-graduation-cap"></i><span>Learn</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('profile') }}" class="sidebar-link active">
+                <i class="fas fa-user"></i><span>Profile</span>
+            </a>
+            <a href="{{ url_for('goals') }}" class="sidebar-link">
+                <i class="fas fa-bullseye"></i><span>Goals</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">Profile</h1>
+                <p class="page-subtitle">Your trading identity and statistics</p>
+            </div>
+        </header>
+
+        <div class="profile-grid">
+            <!-- User Info Card -->
+            <div class="dashboard-card profile-card">
+                <div class="profile-avatar-large">
+                    {{ current_user.username[0].upper() }}
+                </div>
+                <div class="profile-info">
+                    <h2 class="profile-name">{{ current_user.username }}</h2>
+                    <p class="profile-email">{{ current_user.email }}</p>
+                    <p class="profile-date">
+                        <i class="fas fa-calendar"></i> Member since {{ current_user.created_at[:10] }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Trading Stats -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-pie"></i> Trading Statistics</h3>
+                </div>
+                <div class="profile-stats-grid">
+                    <div class="profile-stat">
+                        <div class="profile-stat-value">{{ stats.total or 0 }}</div>
+                        <div class="profile-stat-label">Total Trades</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value text-green">{{ stats.wins or 0 }}</div>
+                        <div class="profile-stat-label">Winning Trades</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value text-red">{{ stats.losses or 0 }}</div>
+                        <div class="profile-stat-label">Losing Trades</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value {% if stats.net_pnl and stats.net_pnl > 0 %}text-green{% elif stats.net_pnl and stats.net_pnl < 0 %}text-red{% endif %}">
+                            {% if stats.net_pnl %}{% if stats.net_pnl > 0 %}+{% endif %}{{ "%.2f"|format(stats.net_pnl) }}{% else %}0{% endif %}
+                        </div>
+                        <div class="profile-stat-label">Net P&L</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value">{{ "%.2f"|format(stats.avg_pnl) if stats.avg_pnl else '0.00' }}</div>
+                        <div class="profile-stat-label">Avg P&L</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value text-green">{{ "%.2f"|format(stats.best_trade) if stats.best_trade else '0.00' }}</div>
+                        <div class="profile-stat-label">Best Trade</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value text-red">{{ "%.2f"|format(stats.worst_trade) if stats.worst_trade else '0.00' }}</div>
+                        <div class="profile-stat-label">Worst Trade</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value">
+                            {% if stats.total and stats.total > 0 %}
+                            {{ "%.1f"|format((stats.wins or 0) / stats.total * 100) }}%
+                            {% else %}0%{% endif %}
+                        </div>
+                        <div class="profile-stat-label">Win Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Actions -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-cog"></i> Account</h3>
+            </div>
+            <div class="account-actions">
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

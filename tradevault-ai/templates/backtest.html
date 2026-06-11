@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Backtesting Buddy — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link">
+                <i class="fas fa-book"></i><span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link">
+                <i class="fas fa-chess-knight"></i><span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link active">
+                <i class="fas fa-flask"></i><span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link">
+                <i class="fas fa-graduation-cap"></i><span>Learn</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">Backtesting Buddy</h1>
+                <p class="page-subtitle">Validate your edge with historical data</p>
+            </div>
+            <a href="{{ url_for('new_backtest') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Backtest
+            </a>
+        </header>
+
+        {% if backtests %}
+        <div class="backtests-grid">
+            {% for bt in backtests %}
+            <div class="backtest-card">
+                <div class="backtest-header">
+                    <div>
+                        <h3 class="backtest-name">{{ bt.strategy_name }}</h3>
+                        <span class="backtest-pair">{{ bt.pair }}</span>
+                    </div>
+                    <form method="POST" action="{{ url_for('delete_backtest', backtest_id=bt.id) }}" 
+                          class="inline-form" onsubmit="return confirm('Delete this backtest?')">
+                        <button type="submit" class="btn-icon btn-icon-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="backtest-dates">
+                    <i class="fas fa-calendar-alt"></i> {{ bt.start_date }} → {{ bt.end_date }}
+                </div>
+
+                <div class="backtest-stats-row">
+                    <div class="backtest-stat">
+                        <span class="backtest-stat-value">{{ bt.trade_count }}</span>
+                        <span class="backtest-stat-label">Trades</span>
+                    </div>
+                    <div class="backtest-stat">
+                        <span class="backtest-stat-value">{{ bt.win_rate or '—' }}%</span>
+                        <span class="backtest-stat-label">Win Rate</span>
+                    </div>
+                    <div class="backtest-stat">
+                        <span class="backtest-stat-value">{{ bt.profit_factor or '—' }}</span>
+                        <span class="backtest-stat-label">Profit Factor</span>
+                    </div>
+                    <div class="backtest-stat">
+                        <span class="backtest-stat-value">{{ "%.2f"|format(bt.total_return * 100) if bt.total_return else '—' }}%</span>
+                        <span class="backtest-stat-label">Return</span>
+                    </div>
+                </div>
+
+                <div class="backtest-balance">
+                    <div class="balance-bar">
+                        <div class="balance-start">${{ "%.0f"|format(bt.initial_balance) }}</div>
+                        <div class="balance-arrow"><i class="fas fa-arrow-right"></i></div>
+                        <div class="balance-end {% if bt.final_balance and bt.final_balance > bt.initial_balance %}text-green{% elif bt.final_balance and bt.final_balance < bt.initial_balance %}text-red{% endif %}">
+                            ${{ "%.0f"|format(bt.final_balance) if bt.final_balance else '—' }}
+                        </div>
+                    </div>
+                    {% if bt.max_drawdown %}
+                    <div class="drawdown-info">
+                        <i class="fas fa-chart-line"></i> Max Drawdown: {{ "%.2f"|format(bt.max_drawdown * 100) }}%
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if bt.notes %}
+                <div class="backtest-notes">
+                    <p>{{ bt.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="dashboard-card empty-state-large">
+            <i class="fas fa-flask"></i>
+            <h3>No backtests yet</h3>
+            <p>Record your backtest results to track strategy performance over time.</p>
+            <a href="{{ url_for('new_backtest') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Run First Backtest
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

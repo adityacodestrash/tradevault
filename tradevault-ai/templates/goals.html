@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Weekly Goals — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link">
+                <i class="fas fa-book"></i><span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link">
+                <i class="fas fa-chess-knight"></i><span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link">
+                <i class="fas fa-flask"></i><span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link">
+                <i class="fas fa-graduation-cap"></i><span>Learn</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('profile') }}" class="sidebar-link">
+                <i class="fas fa-user"></i><span>Profile</span>
+            </a>
+            <a href="{{ url_for('goals') }}" class="sidebar-link active">
+                <i class="fas fa-bullseye"></i><span>Goals</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">Weekly Goals</h1>
+                <p class="page-subtitle">Set process-based targets for this week</p>
+            </div>
+        </header>
+
+        <!-- New Goal Form -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-plus-circle"></i> New Goal</h3>
+            </div>
+            <form method="POST" action="{{ url_for('goals') }}" class="goal-form-inline">
+                <div class="form-row">
+                    <div class="form-group flex-grow">
+                        <input type="text" name="description" class="form-input" 
+                               placeholder="e.g., Journal all trades, Read 3 lessons, Follow plan 100%..." required>
+                    </div>
+                    <div class="form-group" style="width: 120px;">
+                        <input type="number" name="target" class="form-input" placeholder="Target" required min="1">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Goal
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Goals List -->
+        {% if goals %}
+        <div class="goals-grid">
+            {% for goal in goals %}
+            <div class="goal-card {% if goal.completed %}goal-completed{% endif %}">
+                <div class="goal-header">
+                    <h3 class="goal-title">{{ goal.description }}</h3>
+                    <span class="goal-badge {% if goal.completed %}badge-green{% else %}badge-blue{% endif %}">
+                        {% if goal.completed %}<i class="fas fa-check"></i> Done{% else %}Active{% endif %}
+                    </span>
+                </div>
+
+                <div class="goal-progress-section">
+                    <div class="goal-progress-bar">
+                        <div class="goal-progress-fill" style="width: {{ (goal.current / goal.target * 100)|round }}%"></div>
+                    </div>
+                    <div class="goal-progress-stats">
+                        <span>{{ goal.current }} / {{ goal.target }}</span>
+                        <span>{{ (goal.current / goal.target * 100)|round }}%</span>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('update_goal', goal_id=goal.id) }}" class="goal-update-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Update Progress</label>
+                            <input type="number" name="current" class="form-input" 
+                                   value="{{ goal.current }}" min="0" max="{{ goal.target }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-sync"></i> Update
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="dashboard-card empty-state">
+            <i class="fas fa-bullseye"></i>
+            <p>No goals set for this week. Create your first goal above.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

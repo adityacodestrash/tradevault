@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lesson.title }} — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link">
+                <i class="fas fa-book"></i><span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link">
+                <i class="fas fa-chess-knight"></i><span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link">
+                <i class="fas fa-flask"></i><span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link active">
+                <i class="fas fa-graduation-cap"></i><span>Learn</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <div class="lesson-container">
+            <div class="lesson-breadcrumb">
+                <a href="{{ url_for('learn') }}"><i class="fas fa-arrow-left"></i> Back to Modules</a>
+                <span>/</span>
+                <span>{{ lesson.module_title }}</span>
+            </div>
+
+            <div class="lesson-content-card">
+                <div class="lesson-header">
+                    <div>
+                        <span class="lesson-module-label">Module {{ lesson.module_order }}</span>
+                        <h1 class="lesson-title">{{ lesson.title }}</h1>
+                    </div>
+                    <span class="lesson-duration-badge">
+                        <i class="fas fa-clock"></i> {{ lesson.duration }} min read
+                    </span>
+                </div>
+
+                <div class="lesson-body">
+                    {{ lesson.content | replace('
+', '<br>') | safe }}
+                </div>
+
+                <div class="lesson-footer">
+                    <div class="lesson-nav">
+                        {% if prev_lesson %}
+                        <a href="{{ url_for('lesson', lesson_id=prev_lesson.id) }}" class="btn btn-ghost">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </a>
+                        {% else %}
+                        <span></span>
+                        {% endif %}
+
+                        {% if is_completed %}
+                        <span class="completed-badge">
+                            <i class="fas fa-check-circle"></i> Completed
+                        </span>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('complete_lesson', lesson_id=lesson.id) }}">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check"></i> Mark Complete
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if next_lesson %}
+                        <a href="{{ url_for('lesson', lesson_id=next_lesson.id) }}" class="btn btn-ghost">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </a>
+                        {% else %}
+                        <span></span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

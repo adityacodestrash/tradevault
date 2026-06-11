@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if strategy %}Edit Strategy{% else %}New Strategy{% endif %} — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link">
+                <i class="fas fa-book"></i><span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link active">
+                <i class="fas fa-chess-knight"></i><span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link">
+                <i class="fas fa-flask"></i><span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link">
+                <i class="fas fa-graduation-cap"></i><span>Learn</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">{% if strategy %}Edit Strategy{% else %}New Strategy{% endif %}</h1>
+                <p class="page-subtitle">Define your edge with precision</p>
+            </div>
+        </header>
+
+        <form method="POST" class="form-card">
+            <div class="form-grid">
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="fas fa-info-circle"></i> Basic Info</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">Strategy Name</label>
+                        <input type="text" name="name" class="form-input" required
+                               value="{{ strategy.name if strategy else '' }}" placeholder="e.g., London Breakout">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Market Type</label>
+                            <select name="market_type" class="form-select" required>
+                                <option value="FOREX" {% if strategy and strategy.market_type == 'FOREX' %}selected{% endif %}>FOREX</option>
+                                <option value="CRYPTO" {% if strategy and strategy.market_type == 'CRYPTO' %}selected{% endif %}>CRYPTO</option>
+                                <option value="STOCKS" {% if strategy and strategy.market_type == 'STOCKS' %}selected{% endif %}>STOCKS</option>
+                                <option value="FUTURES" {% if strategy and strategy.market_type == 'FUTURES' %}selected{% endif %}>FUTURES</option>
+                                <option value="INDICES" {% if strategy and strategy.market_type == 'INDICES' %}selected{% endif %}>INDICES</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Timeframe</label>
+                            <input type="text" name="timeframe" class="form-input" required
+                                   value="{{ strategy.timeframe if strategy else '' }}" placeholder="e.g., 1H, 4H, DAILY">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section form-section-full">
+                    <h3 class="form-section-title"><i class="fas fa-list-check"></i> Strategy Rules</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">Entry Rules</label>
+                        <textarea name="entry_rules" class="form-textarea" rows="4" placeholder="1. Price must close above 50 EMA&#10;2. RSI must be above 50&#10;3. Volume spike on breakout...">{{ strategy.entry_rules if strategy else '' }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Exit Rules</label>
+                        <textarea name="exit_rules" class="form-textarea" rows="4" placeholder="1. Take profit at 2R&#10;2. Trail stop below swing low&#10;3. Exit if RSI divergence forms...">{{ strategy.exit_rules if strategy else '' }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Risk Rules</label>
+                        <textarea name="risk_rules" class="form-textarea" rows="3" placeholder="1. Risk 1% per trade&#10;2. Max 3 trades per day&#10;3. Stop loss at technical level only...">{{ strategy.risk_rules if strategy else '' }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-textarea" rows="3" placeholder="Additional notes, observations, or context...">{{ strategy.notes if strategy else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('strategies') }}" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> {% if strategy %}Update Strategy{% else %}Save Strategy{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

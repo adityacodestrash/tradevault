@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Trading Journal — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link active">
+                <i class="fas fa-book"></i><span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link">
+                <i class="fas fa-chess-knight"></i><span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link">
+                <i class="fas fa-flask"></i><span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link">
+                <i class="fas fa-graduation-cap"></i><span>Learn</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('profile') }}" class="sidebar-link">
+                <i class="fas fa-user"></i><span>Profile</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">Trading Journal</h1>
+                <p class="page-subtitle">Review, analyze, and improve your trades</p>
+            </div>
+            <a href="{{ url_for('new_trade') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Trade
+            </a>
+        </header>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+            <form method="GET" action="{{ url_for('journal') }}" class="filter-form">
+                <div class="filter-group">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Status</option>
+                        <option value="OPEN" {% if filters.status == 'OPEN' %}selected{% endif %}>Open</option>
+                        <option value="CLOSED" {% if filters.status == 'CLOSED' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select name="direction" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Directions</option>
+                        <option value="LONG" {% if filters.direction == 'LONG' %}selected{% endif %}>Long</option>
+                        <option value="SHORT" {% if filters.direction == 'SHORT' %}selected{% endif %}>Short</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select name="pair" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Pairs</option>
+                        {% for p in pairs %}
+                        <option value="{{ p.pair }}" {% if filters.pair == p.pair %}selected{% endif %}>{{ p.pair }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <a href="{{ url_for('journal') }}" class="btn btn-ghost btn-sm">
+                    <i class="fas fa-undo"></i> Reset
+                </a>
+            </form>
+        </div>
+
+        <!-- Trades Table -->
+        {% if trades %}
+        <div class="dashboard-card">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Pair</th>
+                            <th>Dir</th>
+                            <th>Entry</th>
+                            <th>Exit</th>
+                            <th>Stop</th>
+                            <th>Target</th>
+                            <th>P&L</th>
+                            <th>R</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trade in trades %}
+                        <tr>
+                            <td>{{ trade.trade_date }}</td>
+                            <td class="font-mono font-bold">{{ trade.pair }}</td>
+                            <td>
+                                <span class="badge {% if trade.direction == 'LONG' %}badge-green{% else %}badge-red{% endif %}">
+                                    {{ trade.direction[:1] }}
+                                </span>
+                            </td>
+                            <td class="font-mono">{{ trade.entry_price }}</td>
+                            <td class="font-mono">{{ trade.exit_price or '—' }}</td>
+                            <td class="font-mono">{{ trade.stop_loss or '—' }}</td>
+                            <td class="font-mono">{{ trade.take_profit or '—' }}</td>
+                            <td class="font-mono {% if trade.pnl and trade.pnl > 0 %}text-green{% elif trade.pnl and trade.pnl < 0 %}text-red{% endif %}">
+                                {% if trade.pnl %}{% if trade.pnl > 0 %}+{% endif %}{{ "%.2f"|format(trade.pnl) }}{% else %}—{% endif %}
+                            </td>
+                            <td class="font-mono">{{ trade.r_multiple or '—' }}</td>
+                            <td>
+                                <span class="badge {% if trade.status == 'OPEN' %}badge-blue{% else %}badge-gray{% endif %}">
+                                    {{ trade.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <a href="{{ url_for('edit_trade', trade_id=trade.id) }}" class="btn-icon" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('delete_trade', trade_id=trade.id) }}" 
+                                          class="inline-form" onsubmit="return confirm('Delete this trade?')">
+                                        <button type="submit" class="btn-icon btn-icon-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="dashboard-card empty-state-large">
+            <i class="fas fa-book-open"></i>
+            <h3>No trades found</h3>
+            <p>Start journaling your trades to build your performance history.</p>
+            <a href="{{ url_for('new_trade') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Log First Trade
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

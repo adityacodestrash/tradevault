@@ -1,0 +1,760 @@
+{% extends 'base.html' %}
+
+{% block title %}TradeVault AI — Professional Trading Journal & Analytics{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Landing Page Specific Styles */
+    .hero-section {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: var(--bg-primary);
+    }
+
+    .hero-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(ellipse at center, transparent 0%, var(--bg-primary) 70%);
+        z-index: 2;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 10;
+        text-align: center;
+        max-width: 900px;
+        padding: 2rem;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(0, 212, 170, 0.1);
+        border: 1px solid rgba(0, 212, 170, 0.3);
+        border-radius: 50px;
+        color: var(--accent-primary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        animation: fadeInDown 0.8s ease-out;
+    }
+
+    .hero-badge .pulse {
+        width: 8px;
+        height: 8px;
+        background: var(--accent-primary);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    .hero-title {
+        font-size: clamp(2.5rem, 6vw, 4.5rem);
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    .hero-title .gradient-text {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 2.5rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+
+    .hero-cta {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.8s ease-out 0.6s both;
+    }
+
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        margin-top: 4rem;
+        animation: fadeInUp 0.8s ease-out 0.8s both;
+    }
+
+    .hero-stat {
+        text-align: center;
+    }
+
+    .hero-stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .hero-stat-label {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+
+    /* Features Section */
+    .features-section {
+        padding: 6rem 2rem;
+        background: var(--bg-secondary);
+    }
+
+    .section-header {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto 4rem;
+    }
+
+    .section-label {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: rgba(0, 212, 170, 0.1);
+        color: var(--accent-primary);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+    .section-title {
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .section-desc {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(0, 212, 170, 0.3);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-card:hover::before {
+        opacity: 1;
+    }
+
+    .feature-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(0, 212, 170, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: var(--accent-primary);
+        margin-bottom: 1.25rem;
+    }
+
+    .feature-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .feature-desc {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* How It Works */
+    .how-section {
+        padding: 6rem 2rem;
+        background: var(--bg-primary);
+    }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .step-card {
+        text-align: center;
+        padding: 2rem;
+        position: relative;
+    }
+
+    .step-number {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--bg-primary);
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 0 30px rgba(0, 212, 170, 0.3);
+    }
+
+    .step-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .step-desc {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        padding: 6rem 2rem;
+        background: var(--bg-secondary);
+        text-align: center;
+    }
+
+    .cta-box {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 3rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-box::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(0, 212, 170, 0.05) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .cta-title {
+        font-size: clamp(1.5rem, 3vw, 2.25rem);
+        font-weight: 700;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .cta-desc {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-stats {
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .hero-stat-value {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="hero-section">
+    <canvas class="hero-canvas" id="tradingCanvas"></canvas>
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+        <div class="hero-badge">
+            <span class="pulse"></span>
+            AI-Powered Trading Intelligence
+        </div>
+
+        <h1 class="hero-title">
+            Master Your Trades.<br>
+            <span class="gradient-text">Dominate The Markets.</span>
+        </h1>
+
+        <p class="hero-subtitle">
+            The all-in-one platform for serious traders. Journal every trade, store your strategies, 
+            backtest your ideas, and learn from a structured curriculum — all in one vault.
+        </p>
+
+        <div class="hero-cta">
+            <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket"></i> Start Free
+            </a>
+            <a href="#features" class="btn btn-outline btn-lg">
+                <i class="fas fa-play-circle"></i> See Features
+            </a>
+        </div>
+
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-value" id="statTrades">0</div>
+                <div class="hero-stat-label">Trades Logged</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value" id="statStrategies">0</div>
+                <div class="hero-stat-label">Strategies Built</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value" id="statBacktests">0</div>
+                <div class="hero-stat-label">Backtests Run</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section class="features-section" id="features">
+    <div class="section-header">
+        <div class="section-label">Platform Features</div>
+        <h2 class="section-title">Everything You Need to Trade Like a Pro</h2>
+        <p class="section-desc">
+            TradeVault AI combines powerful journaling, strategy management, and education 
+            into one seamless platform designed for modern traders.
+        </p>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <h3 class="feature-title">Trade Journal</h3>
+            <p class="feature-desc">
+                Log every trade with detailed metrics: entry, exit, risk, P&L, R-multiple, 
+                screenshots, and psychology notes. Review patterns and eliminate mistakes.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chess-knight"></i>
+            </div>
+            <h3 class="feature-title">Strategy Vault</h3>
+            <p class="feature-desc">
+                Store, organize, and refine your trading strategies. Define entry rules, 
+                exit rules, risk parameters, and track performance over time.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-flask"></i>
+            </div>
+            <h3 class="feature-title">Backtest Engine</h3>
+            <p class="feature-desc">
+                Validate your edge with historical data. Record win rates, profit factors, 
+                drawdowns, and equity curves to prove your strategy works before risking capital.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h3 class="feature-title">Learning Hub</h3>
+            <p class="feature-desc">
+                48 structured lessons across 7 modules. From trading basics to advanced concepts, 
+                progress through a curriculum built by professional traders.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <h3 class="feature-title">Analytics Dashboard</h3>
+            <p class="feature-desc">
+                Visualize your performance with win rate, net P&L, equity curves, and goal 
+                tracking. Know your numbers. Trade with confidence.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-bullseye"></i>
+            </div>
+            <h3 class="feature-title">Weekly Goals</h3>
+            <p class="feature-desc">
+                Set process-based goals for the week. Focus on execution quality, not just 
+                profit. Build discipline one week at a time.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+    <div class="section-header">
+        <div class="section-label">How It Works</div>
+        <h2 class="section-title">Three Steps to Trading Mastery</h2>
+    </div>
+
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <h3 class="step-title">Journal Every Trade</h3>
+            <p class="step-desc">
+                Record your setups, execution, and outcome. Add psychology notes to understand 
+                your emotional patterns and improve decision-making.
+            </p>
+        </div>
+
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <h3 class="step-title">Build & Backtest</h3>
+            <p class="step-desc">
+                Document your strategy rules. Run backtests to validate your edge. Know your 
+                win rate and expectancy before going live.
+            </p>
+        </div>
+
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <h3 class="step-title">Learn & Level Up</h3>
+            <p class="step-desc">
+                Progress through structured lessons. Master risk management, psychology, 
+                and technical analysis. Become the trader you want to be.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="cta-section">
+    <div class="cta-box">
+        <h2 class="cta-title">Ready to Transform Your Trading?</h2>
+        <p class="cta-desc">
+            Join thousands of traders who use TradeVault AI to journal, analyze, and improve 
+            their performance every single day.
+        </p>
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-rocket"></i> Create Free Account
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // ============================================
+    // FUTURISTIC TRADING CANVAS ANIMATION
+    // Animated stock chart background for hero
+    // ============================================
+    const canvas = document.getElementById('tradingCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    let candles = [];
+    let particles = [];
+    let time = 0;
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Candlestick class
+    class Candle {
+        constructor(x, open, close, high, low) {
+            this.x = x;
+            this.open = open;
+            this.close = close;
+            this.high = high;
+            this.low = low;
+            this.targetClose = close;
+            this.alpha = 0;
+            this.targetAlpha = 0.15 + Math.random() * 0.25;
+        }
+
+        update() {
+            // Smooth transition to target
+            this.close += (this.targetClose - this.close) * 0.05;
+            this.alpha += (this.targetAlpha - this.alpha) * 0.03;
+
+            // Randomly update target
+            if (Math.random() < 0.02) {
+                const change = (Math.random() - 0.5) * 40;
+                this.targetClose = Math.max(50, Math.min(height - 50, this.targetClose + change));
+                this.high = Math.max(this.open, this.close) + Math.random() * 20;
+                this.low = Math.min(this.open, this.close) - Math.random() * 20;
+            }
+        }
+
+        draw() {
+            const isGreen = this.close >= this.open;
+            const color = isGreen ? '0, 212, 170' : '255, 90, 90';
+
+            ctx.globalAlpha = this.alpha;
+            ctx.strokeStyle = `rgba(${color}, ${this.alpha * 2})`;
+            ctx.fillStyle = `rgba(${color}, ${this.alpha * 0.3})`;
+            ctx.lineWidth = 1;
+
+            // Wick
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.high);
+            ctx.lineTo(this.x, this.low);
+            ctx.stroke();
+
+            // Body
+            const bodyTop = Math.min(this.open, this.close);
+            const bodyHeight = Math.abs(this.close - this.open);
+            ctx.fillRect(this.x - 3, bodyTop, 6, Math.max(bodyHeight, 2));
+            ctx.strokeRect(this.x - 3, bodyTop, 6, Math.max(bodyHeight, 2));
+
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    // Particle class for glowing dots
+    class Particle {
+        constructor() {
+            this.reset();
+        }
+
+        reset() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = (Math.random() - 0.5) * 0.5;
+            this.size = Math.random() * 2 + 0.5;
+            this.alpha = Math.random() * 0.5 + 0.2;
+            this.color = Math.random() > 0.5 ? '0, 212, 170' : '100, 150, 255';
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+                this.reset();
+            }
+        }
+
+        draw() {
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = `rgba(${this.color}, 1)`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Glow
+            ctx.globalAlpha = this.alpha * 0.3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    // Initialize candles
+    const candleCount = Math.floor(window.innerWidth / 20);
+    for (let i = 0; i < candleCount; i++) {
+        const x = i * 20 + 10;
+        const base = height / 2 + (Math.random() - 0.5) * 200;
+        candles.push(new Candle(x, base, base + (Math.random() - 0.5) * 60, base + 30, base - 30));
+    }
+
+    // Initialize particles
+    for (let i = 0; i < 50; i++) {
+        particles.push(new Particle());
+    }
+
+    // Animated line chart overlay
+    let linePoints = [];
+    for (let i = 0; i < 100; i++) {
+        linePoints.push(height / 2 + Math.sin(i * 0.1) * 100 + (Math.random() - 0.5) * 50);
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        time += 0.01;
+
+        // Draw grid
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < width; i += 80) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, height);
+            ctx.stroke();
+        }
+        for (let i = 0; i < height; i += 80) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(width, i);
+            ctx.stroke();
+        }
+
+        // Draw animated line chart
+        ctx.strokeStyle = 'rgba(0, 212, 170, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < linePoints.length; i++) {
+            const x = (i / linePoints.length) * width;
+            const y = linePoints[i] + Math.sin(time + i * 0.05) * 20;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+
+            // Update point
+            linePoints[i] += (Math.random() - 0.5) * 2;
+        }
+        ctx.stroke();
+
+        // Fill under line
+        ctx.lineTo(width, height);
+        ctx.lineTo(0, height);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(0, 212, 170, 0.03)';
+        ctx.fill();
+
+        // Draw candles
+        candles.forEach(candle => {
+            candle.update();
+            candle.draw();
+        });
+
+        // Draw particles
+        particles.forEach(particle => {
+            particle.update();
+            particle.draw();
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // ============================================
+    // HERO STATS COUNTER ANIMATION
+    // ============================================
+    function animateCounter(id, target, duration = 2000) {
+        const el = document.getElementById(id);
+        const start = 0;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(start + (target - start) * easeOut);
+            el.textContent = current.toLocaleString();
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    // Animate stats when visible
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounter('statTrades', 2847);
+                animateCounter('statStrategies', 156);
+                animateCounter('statBacktests', 423);
+                observer.disconnect();
+            }
+        });
+    });
+
+    observer.observe(document.querySelector('.hero-stats'));
+</script>
+{% endblock %}

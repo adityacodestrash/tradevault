@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Learning Hub — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link">
+                <i class="fas fa-book"></i><span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link">
+                <i class="fas fa-chess-knight"></i><span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link">
+                <i class="fas fa-flask"></i><span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link active">
+                <i class="fas fa-graduation-cap"></i><span>Learn</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">Learning Hub</h1>
+                <p class="page-subtitle">Master trading from basics to advanced concepts</p>
+            </div>
+        </header>
+
+        <div class="modules-list">
+            {% for module in modules %}
+            <div class="module-card {% if module.is_locked %}module-locked{% endif %}">
+                <div class="module-header">
+                    <div class="module-number">{{ "%02d"|format(module.module_order) }}</div>
+                    <div class="module-info">
+                        <h3 class="module-title">{{ module.title }}</h3>
+                        <p class="module-desc">{{ module.description }}</p>
+                    </div>
+                    <div class="module-progress">
+                        {% if module.total_lessons > 0 %}
+                        {% set percent = (module.completed_lessons / module.total_lessons * 100)|round %}
+                        <div class="module-progress-ring">
+                            <svg viewBox="0 0 36 36">
+                                <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+                                <circle cx="18" cy="18" r="16" fill="none" stroke="#00d4aa" stroke-width="2"
+                                        stroke-dasharray="100" stroke-dashoffset="{{ 100 - percent }}"
+                                        transform="rotate(-90 18 18)"/>
+                            </svg>
+                            <span class="module-progress-text">{{ percent }}%</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="module-lessons">
+                    {% set lessons = module_lessons[module.id] %}
+                    {% for lesson in lessons %}
+                    <a href="{{ url_for('lesson', lesson_id=lesson.id) }}" class="lesson-item {% if lesson.is_completed %}lesson-completed{% endif %}">
+                        <div class="lesson-status">
+                            {% if lesson.is_completed %}
+                            <i class="fas fa-check-circle"></i>
+                            {% else %}
+                            <i class="far fa-circle"></i>
+                            {% endif %}
+                        </div>
+                        <div class="lesson-info">
+                            <span class="lesson-number">{{ module.module_order }}.{{ lesson.lesson_order }}</span>
+                            <span class="lesson-title">{{ lesson.title }}</span>
+                        </div>
+                        <div class="lesson-meta">
+                            <span class="lesson-duration"><i class="fas fa-clock"></i> {{ lesson.duration }}m</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

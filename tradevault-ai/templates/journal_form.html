@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if trade %}Edit Trade{% else %}New Trade{% endif %} — TradeVault AI{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-chart-line"></i>
+            <span>TRADE<span class="brand-accent">VAULT</span></span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('dashboard') }}" class="sidebar-link">
+                <i class="fas fa-th-large"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('journal') }}" class="sidebar-link active">
+                <i class="fas fa-book"></i><span>Journal</span>
+            </a>
+            <a href="{{ url_for('strategies') }}" class="sidebar-link">
+                <i class="fas fa-chess-knight"></i><span>Strategies</span>
+            </a>
+            <a href="{{ url_for('backtest') }}" class="sidebar-link">
+                <i class="fas fa-flask"></i><span>Backtest</span>
+            </a>
+            <a href="{{ url_for('learn') }}" class="sidebar-link">
+                <i class="fas fa-graduation-cap"></i><span>Learn</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-content">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">{% if trade %}Edit Trade{% else %}New Trade{% endif %}</h1>
+                <p class="page-subtitle">Record every detail of your trade</p>
+            </div>
+        </header>
+
+        <form method="POST" class="form-card" id="tradeForm">
+            <div class="form-grid">
+                <!-- Trade Info -->
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="fas fa-info-circle"></i> Trade Info</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="date" name="trade_date" class="form-input" required
+                                   value="{{ trade.trade_date if trade else '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pair / Asset</label>
+                            <input type="text" name="pair" class="form-input" placeholder="EUR/USD" required
+                                   value="{{ trade.pair if trade else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Direction</label>
+                            <select name="direction" class="form-select" required>
+                                <option value="LONG" {% if trade and trade.direction == 'LONG' %}selected{% endif %}>LONG</option>
+                                <option value="SHORT" {% if trade and trade.direction == 'SHORT' %}selected{% endif %}>SHORT</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="OPEN" {% if trade and trade.status == 'OPEN' %}selected{% endif %}>OPEN</option>
+                                <option value="CLOSED" {% if trade and trade.status == 'CLOSED' %}selected{% endif %}>CLOSED</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prices -->
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="fas fa-dollar-sign"></i> Prices</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Entry Price</label>
+                            <input type="number" step="0.00000001" name="entry_price" class="form-input" required
+                                   value="{{ trade.entry_price if trade else '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Exit Price</label>
+                            <input type="number" step="0.00000001" name="exit_price" class="form-input"
+                                   value="{{ trade.exit_price if trade else '' }}" id="exitPrice">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Stop Loss</label>
+                            <input type="number" step="0.00000001" name="stop_loss" class="form-input"
+                                   value="{{ trade.stop_loss if trade else '' }}" id="stopLoss">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Take Profit</label>
+                            <input type="number" step="0.00000001" name="take_profit" class="form-input"
+                                   value="{{ trade.take_profit if trade else '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk & Size -->
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="fas fa-shield-alt"></i> Risk Management</h3>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Position Size</label>
+                            <input type="number" step="0.01" name="position_size" class="form-input"
+                                   value="{{ trade.position_size if trade else '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Risk %</label>
+                            <input type="number" step="0.01" name="risk_percent" class="form-input"
+                                   value="{{ trade.risk_percent if trade else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">P&L (auto if exit set)</label>
+                            <input type="number" step="0.01" name="pnl" class="form-input"
+                                   value="{{ trade.pnl if trade else '' }}" id="pnlField">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">R-Multiple</label>
+                            <input type="number" step="0.01" name="r_multiple" class="form-input"
+                                   value="{{ trade.r_multiple if trade else '' }}" id="rMultipleField">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="form-section form-section-full">
+                    <h3 class="form-section-title"><i class="fas fa-sticky-note"></i> Notes & Media</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">Screenshot URL</label>
+                        <input type="url" name="screenshot_url" class="form-input" placeholder="https://..."
+                               value="{{ trade.screenshot_url if trade else '' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tags (comma separated)</label>
+                        <input type="text" name="tags" class="form-input" placeholder="breakout, trend, A+ setup"
+                               value="{{ trade.tags if trade else '' }}">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Trade Notes</label>
+                            <textarea name="notes" class="form-textarea" rows="4" placeholder="Setup description, market conditions, why you took this trade...">{{ trade.notes if trade else '' }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Psychology Notes</label>
+                            <textarea name="psychology_notes" class="form-textarea" rows="4" placeholder="How did you feel? Any FOMO, fear, overconfidence?">{{ trade.psychology_notes if trade else '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TradingView Chart for Analysis -->
+                <div class="form-section form-section-full">
+                    <h3 class="form-section-title"><i class="fas fa-chart-area"></i> Market Chart</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
+                        Reference the live chart while journaling your trade. Switch pairs to match your trade.
+                    </p>
+                    <div id="tv_chart_journal" style="height: 350px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);"></div>
+                    <div class="chart-controls" style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="loadJournalChart('FX:EURUSD')">EUR/USD</button>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="loadJournalChart('FX:GBPUSD')">GBP/USD</button>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="loadJournalChart('FX:USDJPY')">USD/JPY</button>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="loadJournalChart('FX:XAUUSD')">XAU/USD</button>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="loadJournalChart('BINANCE:BTCUSDT')">BTC/USDT</button>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="loadJournalChart('BINANCE:ETHUSDT')">ETH/USDT</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('journal') }}" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> {% if trade %}Update Trade{% else %}Save Trade{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Auto-calculate P&L and R-Multiple when exit price changes
+    document.getElementById('exitPrice').addEventListener('input', calculateMetrics);
+    document.querySelector('select[name="direction"]').addEventListener('change', calculateMetrics);
+    document.getElementById('stopLoss').addEventListener('input', calculateMetrics);
+
+    function calculateMetrics() {
+        const entry = parseFloat(document.querySelector('input[name="entry_price"]').value);
+        const exit = parseFloat(document.getElementById('exitPrice').value);
+        const direction = document.querySelector('select[name="direction"]').value;
+        const sl = parseFloat(document.getElementById('stopLoss').value);
+
+        if (entry && exit) {
+            let pnl = direction === 'LONG' ? exit - entry : entry - exit;
+            document.getElementById('pnlField').value = pnl.toFixed(2);
+
+            if (sl) {
+                let risk = direction === 'LONG' ? entry - sl : sl - entry;
+                if (risk !== 0) {
+                    document.getElementById('rMultipleField').value = (pnl / risk).toFixed(2);
+                }
+            }
+        }
+    }
+
+    // TradingView Chart for Journal
+    function loadJournalChart(symbol) {
+        const container = document.getElementById('tv_chart_journal');
+        container.innerHTML = '';
+
+        const script = document.createElement('script');
+        script.src = 'https://s3.tradingview.com/tv.js';
+        script.onload = function() {
+            new TradingView.widget({
+                "width": "100%",
+                "height": 350,
+                "symbol": symbol,
+                "interval": "60",
+                "timezone": "exchange",
+                "theme": "dark",
+                "style": "1",
+                "locale": "en",
+                "toolbar_bg": "#111827",
+                "enable_publishing": false,
+                "hide_top_toolbar": false,
+                "hide_legend": false,
+                "save_image": false,
+                "container_id": "tv_chart_journal",
+                "studies": ["MASimple@tv-basicstudies"],
+                "show_popup_button": true,
+                "popup_width": "1000",
+                "popup_height": "650"
+            });
+        };
+        document.head.appendChild(script);
+    }
+
+    // Load default chart
+    loadJournalChart('FX:EURUSD');
+</script>
+{% endblock %}
